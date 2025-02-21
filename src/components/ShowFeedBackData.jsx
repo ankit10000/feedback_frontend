@@ -30,7 +30,7 @@ const ShowFeedBackData = () => {
         const order = sortField === field && sortOrder === "asc" ? "desc" : "asc";
         setSortField(field);
         setSortOrder(order);
-        
+
         const sortedData = [...filteredEmployees].sort((a, b) => {
             if (a[field] < b[field]) return order === "asc" ? -1 : 1;
             if (a[field] > b[field]) return order === "asc" ? 1 : -1;
@@ -82,6 +82,8 @@ const ShowFeedBackData = () => {
                             <th className="border border-gray-300 p-2 cursor-pointer" onClick={() => handleSort("description")}>Description</th>
                             <th className="border border-gray-300 p-2 cursor-pointer" onClick={() => handleSort("email")}>Email</th>
                             <th className="border border-gray-300 p-2 cursor-pointer" onClick={() => handleSort("rate_star")}>Rate Star</th>
+                            <th className="border border-gray-300 p-2 cursor-pointer">Reply</th>
+                            <th className="border border-gray-300 p-2 cursor-pointer">View Reply</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -94,6 +96,12 @@ const ShowFeedBackData = () => {
                                     <td className="border border-gray-300 p-2">{emp.description}</td>
                                     <td className="border border-gray-300 p-2">{emp.email}</td>
                                     <td className="border border-gray-300 p-2">{emp.rate_star}</td>
+                                    <td className="border border-gray-300 p-2"><button className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700">
+                                        Reply
+                                    </button></td>
+                                    <td className="border border-gray-300 p-2"><button className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700">
+                                        View Reply
+                                    </button></td>
                                 </tr>
                             ))
                         ) : (
@@ -105,31 +113,38 @@ const ShowFeedBackData = () => {
                 </table>
             )}
             {selectedEmployee && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-                    <div className="bg-white p-5 rounded-lg shadow-lg">
-                        <h3 className="text-xl font-bold mb-4">Employee Details</h3>
-                        <p><strong>_Id:</strong> {selectedEmployee._id}</p>
-                        <p><strong>App Version:</strong> {selectedEmployee.app_version}</p>
-                        <p><strong>App Name:</strong> {selectedEmployee.app_name}</p>
-                        <p><strong>Date:</strong> {selectedEmployee.date}</p>
-                        <p><strong>Description:</strong> {selectedEmployee.description}</p>
-                        <p><strong>Device Model:</strong> {selectedEmployee.device_model}</p>
-                        <p><strong>Device Token:</strong> {selectedEmployee.device_token}</p>
-                        <p><strong>Email:</strong> {selectedEmployee.email}</p>
-                        <p><strong>From Screen:</strong> {selectedEmployee.from_screen}</p>
-                        <p><strong>Like/Dislike:</strong> {selectedEmployee.like_dislike}</p>
-                        <p><strong>OS Version:</strong> {selectedEmployee.os_version}</p>
-                        <p><strong>Rate Star:</strong> {selectedEmployee.rate_star}</p>
-                        <p><strong>Timestamp:</strong> {new Date(selectedEmployee.timestamp).toLocaleString()}</p>
-                        <button 
-                            onClick={handleClosePopup} 
-                            className="mt-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-700"
-                        >
-                            Close
-                        </button>
-                    </div>
-                </div>
-            )}
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full">
+            <h3 className="text-2xl font-semibold mb-4 text-center">Employee Details</h3>
+            <table className="w-full border-collapse border border-gray-300">
+                <tbody>
+                    <tr><td className="border border-gray-300 p-2 font-semibold">_Id</td><td className="border border-gray-300 p-2">{selectedEmployee._id}</td></tr>
+                    <tr><td className="border border-gray-300 p-2 font-semibold">App Version</td><td className="border border-gray-300 p-2">{selectedEmployee.app_version}</td></tr>
+                    <tr><td className="border border-gray-300 p-2 font-semibold">App Name</td><td className="border border-gray-300 p-2">{selectedEmployee.app_name}</td></tr>
+                    <tr><td className="border border-gray-300 p-2 font-semibold">Date</td><td className="border border-gray-300 p-2">{selectedEmployee.date}</td></tr>
+                    <tr><td className="border border-gray-300 p-2 font-semibold">Description</td><td className="border border-gray-300 p-2">{selectedEmployee.description}</td></tr>
+                    <tr><td className="border border-gray-300 p-2 font-semibold">Device Model</td><td className="border border-gray-300 p-2">{selectedEmployee.device_model}</td></tr>
+                    <tr><td className="border border-gray-300 p-2 font-semibold">Device Token</td><td className="border border-gray-300 p-2">{selectedEmployee.device_token}</td></tr>
+                    <tr><td className="border border-gray-300 p-2 font-semibold">Email</td><td className="border border-gray-300 p-2">{selectedEmployee.email}</td></tr>
+                    <tr><td className="border border-gray-300 p-2 font-semibold">From Screen</td><td className="border border-gray-300 p-2">{selectedEmployee.from_screen}</td></tr>
+                    <tr><td className="border border-gray-300 p-2 font-semibold">Like/Dislike</td><td className="border border-gray-300 p-2">{selectedEmployee.like_dislike}</td></tr>
+                    <tr><td className="border border-gray-300 p-2 font-semibold">OS Version</td><td className="border border-gray-300 p-2">{selectedEmployee.os_version}</td></tr>
+                    <tr><td className="border border-gray-300 p-2 font-semibold">Rate Star</td><td className="border border-gray-300 p-2">{selectedEmployee.rate_star}</td></tr>
+                    <tr><td className="border border-gray-300 p-2 font-semibold">Timestamp</td><td className="border border-gray-300 p-2">{new Date(selectedEmployee.timestamp).toLocaleString()}</td></tr>
+                </tbody>
+            </table>
+            <div className="flex justify-center mt-4">
+                <button
+                    onClick={handleClosePopup}
+                    className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-700"
+                >
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+)}
+
         </div>
     );
 };

@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";
 
 const FeedbackForm = () => {
-    const navigate = useNavigate(); // Hook to navigate
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         app_version: "",
         app_name: "",
@@ -16,6 +16,8 @@ const FeedbackForm = () => {
         like_dislike: "",
         os_version: "",
         rate_star: "",
+        report: "",
+        faq: "",
     });
 
     const [message, setMessage] = useState("");
@@ -41,6 +43,8 @@ const FeedbackForm = () => {
                 like_dislike: "",
                 os_version: "",
                 rate_star: "",
+                report: "",
+                faq: "",
             });
         } catch (error) {
             setMessage("Error submitting feedback");
@@ -70,9 +74,23 @@ const FeedbackForm = () => {
                 <input type="text" name="device_token" placeholder="Device Token" value={formData.device_token} onChange={handleChange} className="border p-2 rounded" required />
                 <input type="email" name="email" placeholder="Email" value={formData.email} onChange={handleChange} className="border p-2 rounded" required />
                 <input type="text" name="from_screen" placeholder="From Screen" value={formData.from_screen} onChange={handleChange} className="border p-2 rounded" required />
-                <input type="text" name="like_dislike" placeholder="Like/Dislike" value={formData.like_dislike} onChange={handleChange} className="border p-2 rounded" required />
+
+                {/* Like/Dislike Dropdown */}
+                <select name="like_dislike" value={formData.like_dislike} onChange={handleChange} className="border p-2 rounded" required>
+                    <option value="">Do you like this app?</option>
+                    <option value="Like">Like</option>
+                    <option value="Dislike">Dislike</option>
+                </select>
+
                 <input type="text" name="os_version" placeholder="OS Version" value={formData.os_version} onChange={handleChange} className="border p-2 rounded" required />
                 <input type="number" name="rate_star" placeholder="Rate Star (1-5)" value={formData.rate_star} onChange={handleChange} className="border p-2 rounded" required />
+
+                {/* Report Textarea */}
+                <textarea name="report" placeholder="Report (if any issue)" value={formData.report} onChange={handleChange} className="border p-2 rounded"></textarea>
+
+                {/* FAQ Text Input */}
+                <input type="text" name="faq" placeholder="Frequently Asked Question" value={formData.faq} onChange={handleChange} className="border p-2 rounded" />
+
                 <button type="submit" className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Submit Feedback</button>
             </form>
         </div>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { GrView } from "react-icons/gr";
 
 const ShowFeedBackData = () => {
     const [employees, setEmployees] = useState([]);
@@ -49,13 +50,75 @@ const ShowFeedBackData = () => {
     };
 
     const [selectedEmployee, setSelectedEmployee] = useState(null);
+    const [replyEmployee, setReplyEmployee] = useState(null);
+    const [viewreplyEmployee, setViewReplyEmployee] = useState(null);
+
+
     const handleRowClick = (employee) => {
         setSelectedEmployee(employee);
     };
+    const [replyMessage, setReplyMessage] = useState("");
+
+    const handleReply = (employee) => {
+        setReplyEmployee(employee);
+        setSelectedEmployee(null);  // Close the employee details popup
+        setReplyMessage("");
+    };
+    // const handleViewReply = (employee) => {
+    //     setSelectedEmployee(null);  // Close the employee details popup
+    //     setReplyEmployee(null); // Open the reply popup
+    //     setViewReplyEmployee(employee); // Open the reply
+    // };
+
+    const submitReplies = async () => {
+        if (!replyMessage.trim()) {
+            alert("Reply message cannot be empty.");
+            return;
+        }
+
+        try {
+            const response = await axios.post("http://localhost:5000/api/send-reply", {
+                email: replyEmployee.email,
+                subject: "Feedback Reply",
+                message: replyMessage,
+            });
+
+            if (response.data.message) {
+                alert("Reply sent successfully!");
+                setReplyEmployee(null);  // Close modal
+                setReplyMessage("");  // Clear message
+            } else {
+                alert("Failed to send reply.");
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Error sending reply.");
+        }
+    };
+    const handleViewReply = async (employee) => {
+        try {
+            const response = await axios.get(`http://localhost:5000/api/replies-by-email?email=${employee.email}`);
+            if (response.data.success) {
+                setViewReplyEmployee({ ...employee, replies: response.data.data });
+            } else {
+                alert("No replies found for this user.");
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Error fetching replies.");
+        }
+    };
+
+
 
     const handleClosePopup = () => {
         setSelectedEmployee(null);
+        setReplyEmployee(null);
+        setViewReplyEmployee(null); // Open the reply
+
     };
+
+
 
     return (
         <div className="max-w-8xl mx-auto mt-10 p-5 border rounded-lg shadow-lg bg-white overflow-x-auto">
@@ -82,6 +145,9 @@ const ShowFeedBackData = () => {
                             <th className="border border-gray-300 p-2 cursor-pointer" onClick={() => handleSort("description")}>Description</th>
                             <th className="border border-gray-300 p-2 cursor-pointer" onClick={() => handleSort("email")}>Email</th>
                             <th className="border border-gray-300 p-2 cursor-pointer" onClick={() => handleSort("rate_star")}>Rate Star</th>
+                            <th className="border border-gray-300 p-2 cursor-pointer" onClick={() => handleSort("report")}>Report</th>
+                            <th className="border border-gray-300 p-2 cursor-pointer" onClick={() => handleSort("fraq")}>Freq Ask</th>
+
                             <th className="border border-gray-300 p-2 cursor-pointer">Reply</th>
                             <th className="border border-gray-300 p-2 cursor-pointer">View Reply</th>
                         </tr>
@@ -96,11 +162,29 @@ const ShowFeedBackData = () => {
                                     <td className="border border-gray-300 p-2">{emp.description}</td>
                                     <td className="border border-gray-300 p-2">{emp.email}</td>
                                     <td className="border border-gray-300 p-2">{emp.rate_star}</td>
-                                    <td className="border border-gray-300 p-2"><button className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700">
-                                        Reply
-                                    </button></td>
-                                    <td className="border border-gray-300 p-2"><button className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700">
-                                        View Reply
+                                    <td className="border border-gray-300 p-2">{(emp.report ? emp.report:"null")}</td>
+                                    <td className="border border-gray-300 p-2">{(emp.fraq ? emp.fraq:"null")}</td>
+                                    <td className="border border-gray-300 p-2">
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation(); // Prevents triggering row click
+                                                handleReply(emp);
+                                            }}
+                                            className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700"
+                                        >
+                                            Reply
+                                        </button>
+
+                                    </td>
+                                    <td className="border border-gray-300 p-2"><button
+                                        onClick={(e) => {
+                                            e.stopPropagation(); // Prevents triggering row click
+                                            handleViewReply(emp);
+                                        }}
+                                        className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700"
+                                    >
+                                        <GrView />
+                                        <span className="ml-2">{emp.repliesCount || 0}</span>
                                     </button></td>
                                 </tr>
                             ))
@@ -113,37 +197,102 @@ const ShowFeedBackData = () => {
                 </table>
             )}
             {selectedEmployee && (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-        <div className="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full">
-            <h3 className="text-2xl font-semibold mb-4 text-center">Employee Details</h3>
-            <table className="w-full border-collapse border border-gray-300">
-                <tbody>
-                    <tr><td className="border border-gray-300 p-2 font-semibold">_Id</td><td className="border border-gray-300 p-2">{selectedEmployee._id}</td></tr>
-                    <tr><td className="border border-gray-300 p-2 font-semibold">App Version</td><td className="border border-gray-300 p-2">{selectedEmployee.app_version}</td></tr>
-                    <tr><td className="border border-gray-300 p-2 font-semibold">App Name</td><td className="border border-gray-300 p-2">{selectedEmployee.app_name}</td></tr>
-                    <tr><td className="border border-gray-300 p-2 font-semibold">Date</td><td className="border border-gray-300 p-2">{selectedEmployee.date}</td></tr>
-                    <tr><td className="border border-gray-300 p-2 font-semibold">Description</td><td className="border border-gray-300 p-2">{selectedEmployee.description}</td></tr>
-                    <tr><td className="border border-gray-300 p-2 font-semibold">Device Model</td><td className="border border-gray-300 p-2">{selectedEmployee.device_model}</td></tr>
-                    <tr><td className="border border-gray-300 p-2 font-semibold">Device Token</td><td className="border border-gray-300 p-2">{selectedEmployee.device_token}</td></tr>
-                    <tr><td className="border border-gray-300 p-2 font-semibold">Email</td><td className="border border-gray-300 p-2">{selectedEmployee.email}</td></tr>
-                    <tr><td className="border border-gray-300 p-2 font-semibold">From Screen</td><td className="border border-gray-300 p-2">{selectedEmployee.from_screen}</td></tr>
-                    <tr><td className="border border-gray-300 p-2 font-semibold">Like/Dislike</td><td className="border border-gray-300 p-2">{selectedEmployee.like_dislike}</td></tr>
-                    <tr><td className="border border-gray-300 p-2 font-semibold">OS Version</td><td className="border border-gray-300 p-2">{selectedEmployee.os_version}</td></tr>
-                    <tr><td className="border border-gray-300 p-2 font-semibold">Rate Star</td><td className="border border-gray-300 p-2">{selectedEmployee.rate_star}</td></tr>
-                    <tr><td className="border border-gray-300 p-2 font-semibold">Timestamp</td><td className="border border-gray-300 p-2">{new Date(selectedEmployee.timestamp).toLocaleString()}</td></tr>
-                </tbody>
-            </table>
-            <div className="flex justify-center mt-4">
-                <button
-                    onClick={handleClosePopup}
-                    className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-700"
-                >
-                    Close
-                </button>
-            </div>
-        </div>
-    </div>
-)}
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                    <div className="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full">
+                        <h3 className="text-2xl font-semibold mb-4 text-center">Employee Details</h3>
+                        <table className="w-full border-collapse border border-gray-300">
+                            <tbody>
+                                <tr><td className="border border-gray-300 p-2 font-semibold">_Id</td><td className="border border-gray-300 p-2">{selectedEmployee._id}</td></tr>
+                                <tr><td className="border border-gray-300 p-2 font-semibold">App Version</td><td className="border border-gray-300 p-2">{selectedEmployee.app_version}</td></tr>
+                                <tr><td className="border border-gray-300 p-2 font-semibold">App Name</td><td className="border border-gray-300 p-2">{selectedEmployee.app_name}</td></tr>
+                                <tr><td className="border border-gray-300 p-2 font-semibold">Date</td><td className="border border-gray-300 p-2">{selectedEmployee.date}</td></tr>
+                                <tr><td className="border border-gray-300 p-2 font-semibold">Description</td><td className="border border-gray-300 p-2">{selectedEmployee.description}</td></tr>
+                                <tr><td className="border border-gray-300 p-2 font-semibold">Device Model</td><td className="border border-gray-300 p-2">{selectedEmployee.device_model}</td></tr>
+                                <tr><td className="border border-gray-300 p-2 font-semibold">Device Token</td><td className="border border-gray-300 p-2">{selectedEmployee.device_token}</td></tr>
+                                <tr><td className="border border-gray-300 p-2 font-semibold">Email</td><td className="border border-gray-300 p-2">{selectedEmployee.email}</td></tr>
+                                <tr><td className="border border-gray-300 p-2 font-semibold">From Screen</td><td className="border border-gray-300 p-2">{selectedEmployee.from_screen}</td></tr>
+                                <tr><td className="border border-gray-300 p-2 font-semibold">Like/Dislike</td><td className="border border-gray-300 p-2">{selectedEmployee.like_dislike}</td></tr>
+                                <tr><td className="border border-gray-300 p-2 font-semibold">OS Version</td><td className="border border-gray-300 p-2">{selectedEmployee.os_version}</td></tr>
+                                <tr><td className="border border-gray-300 p-2 font-semibold">Rate Star</td><td className="border border-gray-300 p-2">{selectedEmployee.rate_star}</td></tr>
+                                <tr><td className="border border-gray-300 p-2 font-semibold">Report</td><td className="border border-gray-300 p-2">{selectedEmployee.report}</td></tr>
+                                <tr><td className="border border-gray-300 p-2 font-semibold">FAQ</td><td className="border border-gray-300 p-2">{selectedEmployee.fraq}</td></tr>
+                                <tr><td className="border border-gray-300 p-2 font-semibold">Timestamp</td><td className="border border-gray-300 p-2">{new Date(selectedEmployee.timestamp).toLocaleString()}</td></tr>
+                            </tbody>
+                        </table>
+                        <div className="flex justify-center mt-4">
+                            <button
+                                onClick={handleClosePopup}
+                                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-700"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+
+            {replyEmployee && (
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                    <div className="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full">
+                        <h3 className="text-2xl font-semibold mb-4 text-center">Enter Description</h3>
+                        <div className="grid">
+                            <label htmlFor="description">{replyEmployee.email}</label>
+                            <textarea
+                                id="description"
+                                name="description"
+                                className="border border-gray-300 p-2 w-full my-5"
+                                rows={10}
+                                value={replyMessage}
+                                onChange={(e) => setReplyMessage(e.target.value)}  // Update state on input
+                            ></textarea>
+                        </div>
+                        <div className="flex justify-center mt-4">
+                            <button
+                                onClick={submitReplies}  // No need to pass parameters now
+                                className="px-4 py-2 mr-4 bg-blue-500 text-white rounded hover:bg-blue-700"
+                            >
+                                Submit Reply
+                            </button>
+                            <button
+                                onClick={handleClosePopup}
+                                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-700"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {viewreplyEmployee && (
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                    <div className="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full">
+                        <h3 className="text-2xl font-semibold mb-4 text-center">View Replies</h3>
+                        <div className="grid">
+                            {viewreplyEmployee.replies.length > 0 ? (
+                                viewreplyEmployee.replies.map((reply, index) => (
+                                    <div key={index} className="p-2 border-b border-gray-300">
+                                        <p className="text-sm text-gray-600">{new Date(reply.timestamp).toLocaleString()}</p>
+                                        <p>{reply.message}</p>
+                                    </div>
+                                ))
+                            ) : (
+                                <p className="text-center text-gray-500">No replies found.</p>
+                            )}
+                        </div>
+                        <div className="flex justify-center mt-4">
+                            <button
+                                onClick={handleClosePopup}
+                                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-700"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
 
         </div>
     );

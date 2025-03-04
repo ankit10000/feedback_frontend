@@ -17,7 +17,7 @@ const FeedbackForm = () => {
         os_version: "",
         rate_star: "",
         report: "",
-        faq: "",
+        fraq: "",
     });
 
     const [message, setMessage] = useState("");
@@ -29,7 +29,7 @@ const FeedbackForm = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post("http://localhost:5000/api/save-to-notepad", formData);
+            const response = await axios.post("https://backend-2l3h.onrender.com/api/save-to-notepad", formData);
             setMessage(response.data.message);
             setFormData({
                 app_version: "",
@@ -44,7 +44,7 @@ const FeedbackForm = () => {
                 os_version: "",
                 rate_star: "",
                 report: "",
-                faq: "",
+                fraq: "",
             });
         } catch (error) {
             setMessage("Error submitting feedback");
@@ -89,7 +89,7 @@ const FeedbackForm = () => {
                 <textarea name="report" placeholder="Report (if any issue)" value={formData.report} onChange={handleChange} className="border p-2 rounded"></textarea>
 
                 {/* FAQ Text Input */}
-                <input type="text" name="faq" placeholder="Frequently Asked Question" value={formData.faq} onChange={handleChange} className="border p-2 rounded" />
+                <input type="text" name="fraq" placeholder="Frequently Asked Question" value={formData.fraq} onChange={handleChange} className="border p-2 rounded" />
 
                 <button type="submit" className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Submit Feedback</button>
             </form>

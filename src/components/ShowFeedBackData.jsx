@@ -14,7 +14,7 @@ const ShowFeedBackData = () => {
     useEffect(() => {
         const fetchEmployees = async () => {
             try {
-                const response = await axios.get("https://backend-2l3h.onrender.com/api/get_feedback");
+                const response = await axios.get("https://backend-2l3h.onrender.com/api/notepad/get_feedback");
                 setEmployees(response.data.data);
                 setFilteredEmployees(response.data.data);
             } catch (err) {
@@ -77,7 +77,7 @@ const ShowFeedBackData = () => {
         }
 
         try {
-            const response = await axios.post("https://backend-2l3h.onrender.com/api/send-reply", {
+            const response = await axios.post("https://backend-2l3h.onrender.com/api/reply/send-reply", {
                 email: replyEmployee.email,
                 subject: "Feedback Reply",
                 message: replyMessage,
@@ -97,7 +97,7 @@ const ShowFeedBackData = () => {
     };
     const handleViewReply = async (employee) => {
         try {
-            const response = await axios.get(`https://backend-2l3h.onrender.com/api/replies-by-email?email=${employee.email}`);
+            const response = await axios.get(`https://backend-2l3h.onrender.com/api/reply/replies-by-email?email=${employee.email}`);
             if (response.data.success) {
                 setViewReplyEmployee({ ...employee, replies: response.data.data });
             } else {

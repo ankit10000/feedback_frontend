@@ -29,7 +29,7 @@ const FeedbackForm = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post("https://backend-2l3h.onrender.com/api/save-to-notepad", formData);
+            const response = await axios.post("https://backend-2l3h.onrender.com/api/notepad/save-to-notepad", formData);
             setMessage(response.data.message);
             setFormData({
                 app_version: "",

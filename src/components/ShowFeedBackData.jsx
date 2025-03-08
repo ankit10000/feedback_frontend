@@ -122,10 +122,10 @@ const ShowFeedBackData = () => {
 
     return (
         <div className="max-w-8xl mx-auto mt-10 p-5 border rounded-lg shadow-lg bg-white overflow-x-auto">
-            <button onClick={() => window.location.href = '/'} className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700">
+            {/* <button onClick={() => window.location.href = '/'} className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700">
                 Back
-            </button>
-            <h2 className="text-xl font-bold mb-4">User Feedback</h2>
+            </button> */}
+            <h2 className="text-xl font-bold mb-4">App Feedback</h2>
             <input
                 type="text"
                 placeholder="Search..."

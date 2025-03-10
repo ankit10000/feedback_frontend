@@ -41,7 +41,7 @@ function Login() {
 
         } else if (data.user.role === 'employee') {
             // navigate('/employee_dashboard');    
-            navigate('/show_data');
+            navigate('/employee_dashboard');
         }
       } else {
         setError(data.message || 'Invalid credentials');

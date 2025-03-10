@@ -10,6 +10,7 @@ import NavBar from "./pages/NavBar";
 import { useEffect } from "react";
 import AssignedApps from "./pages/AssignedApps";
 import Profile from "./pages/Profile";
+import EmployeeDashboard from "./pages/EmployeeDashboard";
 
 function AppLayout() {
     const location = useLocation();
@@ -34,6 +35,7 @@ function AppLayout() {
                 <Route path="/admin_dashboard" element={<AdminDashBoard />} />
                 <Route path="/show_employees" element={<ShowEmployees />} />
                 <Route path="/assigned_apps" element={<AssignedApps />} />
+                <Route path="/employee_dashboard" element={<EmployeeDashboard />} />
                 <Route path="/profile" element={<Profile />} />
             </Routes>
         </>

@@ -33,9 +33,9 @@ const ShowFeedBackData = () => {
                 });
                 setEmployees(feedbacks);
                 setFilteredEmployees(feedbacks);
+                setLoading(false);
             } catch (err) {
                 setError("Failed to fetch feedback");
-                console.error(err);
             } finally {
                 setLoading(false);
             }
@@ -152,11 +152,11 @@ const ShowFeedBackData = () => {
                 onChange={handleSearch}
                 className="mb-4 p-2 border rounded w-full"
             />
-            {loading && (
+            {loading && 
                 <div className="flex justify-center items-center">
                     <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
                 </div>
-            )}
+            }
             {error && <p className="text-red-600">{error}</p>}
             {!loading && !error && (
                 <table className="w-full border-collapse border border-gray-300">

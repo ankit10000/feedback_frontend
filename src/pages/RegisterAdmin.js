@@ -33,7 +33,7 @@ function RegisterAdmin() {
       const data = await response.json();
       if (response.ok) {
         alert("Admin registered successfully!");
-        navigate("/admin_dashboard"); // Redirect after success
+        navigate("/dashborad"); // Redirect after success
       } else {
         setError(data.message || "Failed to register");
       }

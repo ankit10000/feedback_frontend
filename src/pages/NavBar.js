@@ -11,7 +11,7 @@ const user = {
 };
 
 const adminNavigation = [
-  { name: 'Admin Dashboard', href: '/admin_dashboard' },
+  { name: 'Admin Dashboard', href: '/dashborad' },
   { name: 'Register Admin', href: '/register_admin' },
   { name: 'Register Employee', href: '/register_employee' },
   { name: 'Employee & Admin', href: '/show_employees' },

@@ -3,6 +3,9 @@ import axios from "axios";
 import { GrView } from "react-icons/gr";
 
 const ShowFeedBackData = () => {
+    const [selectedEmployee, setSelectedEmployee] = useState(null);
+    const [replyEmployee, setReplyEmployee] = useState(null);
+    const [viewreplyEmployee, setViewReplyEmployee] = useState(null);
     const [employees, setEmployees] = useState([]);
     const [filteredEmployees, setFilteredEmployees] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -10,13 +13,26 @@ const ShowFeedBackData = () => {
     const [sortField, setSortField] = useState(null);
     const [sortOrder, setSortOrder] = useState("asc");
     const [searchQuery, setSearchQuery] = useState("");
+    const [replyMessage, setReplyMessage] = useState("");
 
     useEffect(() => {
         const fetchEmployees = async () => {
             try {
                 const response = await axios.get("https://backend-2l3h.onrender.com/api/notepad/get_feedback");
-                setEmployees(response.data.data);
-                setFilteredEmployees(response.data.data);
+                const feedbacks = response.data?.data || [];
+                const feedbackIds = feedbacks.map(fb => fb._id);
+                const response1 = feedbackIds.map(id => axios.get(`https://backend-2l3h.onrender.com/api/reply/replies-by-feedback?feedbackId=${id}`)
+                    .then(response => ({ feedbackId: id, replies: response.data?.data || [] }))
+                    .catch(error => ({ feedbackId: id, error: error.message })) // Handle errors per request
+                );
+                const replies = await Promise.all(response1);
+                feedbacks.forEach(fb => {
+                    const reply = replies.find(r => r.feedbackId === fb._id);
+                    fb.replies = reply?.replies || [];
+                    fb.error = reply?.error;
+                });
+                setEmployees(feedbacks);
+                setFilteredEmployees(feedbacks);
             } catch (err) {
                 setError("Failed to fetch feedback");
                 console.error(err);
@@ -24,8 +40,11 @@ const ShowFeedBackData = () => {
                 setLoading(false);
             }
         };
-        fetchEmployees();
+
+
+        return () => fetchEmployees();
     }, []);
+
 
     const handleSort = (field) => {
         const order = sortField === field && sortOrder === "asc" ? "desc" : "asc";
@@ -49,26 +68,19 @@ const ShowFeedBackData = () => {
         setFilteredEmployees(filteredData);
     };
 
-    const [selectedEmployee, setSelectedEmployee] = useState(null);
-    const [replyEmployee, setReplyEmployee] = useState(null);
-    const [viewreplyEmployee, setViewReplyEmployee] = useState(null);
 
 
     const handleRowClick = (employee) => {
         setSelectedEmployee(employee);
     };
-    const [replyMessage, setReplyMessage] = useState("");
+
 
     const handleReply = (employee) => {
         setReplyEmployee(employee);
-        setSelectedEmployee(null);  // Close the employee details popup
+        setSelectedEmployee(null);
         setReplyMessage("");
     };
-    // const handleViewReply = (employee) => {
-    //     setSelectedEmployee(null);  // Close the employee details popup
-    //     setReplyEmployee(null); // Open the reply popup
-    //     setViewReplyEmployee(employee); // Open the reply
-    // };
+
 
     const submitReplies = async () => {
         if (!replyMessage.trim()) {
@@ -81,12 +93,13 @@ const ShowFeedBackData = () => {
                 email: replyEmployee.email,
                 subject: "Feedback Reply",
                 message: replyMessage,
+                feedbackId: replyEmployee._id,
             });
 
             if (response.data.message) {
                 alert("Reply sent successfully!");
-                setReplyEmployee(null);  // Close modal
-                setReplyMessage("");  // Clear message
+                setReplyEmployee(null);
+                setReplyMessage("");
             } else {
                 alert("Failed to send reply.");
             }
@@ -95,26 +108,34 @@ const ShowFeedBackData = () => {
             alert("Error sending reply.");
         }
     };
+
+
     const handleViewReply = async (employee) => {
         try {
-            const response = await axios.get(`https://backend-2l3h.onrender.com/api/reply/replies-by-email?email=${employee.email}`);
-            if (response.data.success) {
+            setLoading(true);
+            const response = await axios.get(
+                `https://backend-2l3h.onrender.com/api/reply/replies-by-feedback?feedbackId=${employee._id}`
+            );
+
+            if (response.data.success && Array.isArray(response.data.data)) {
                 setViewReplyEmployee({ ...employee, replies: response.data.data });
             } else {
+                setViewReplyEmployee({ ...employee, replies: [] });
                 alert("No replies found for this user.");
             }
         } catch (err) {
             console.error(err);
             alert("Error fetching replies.");
+        } finally {
+            setLoading(false);
         }
     };
-
 
 
     const handleClosePopup = () => {
         setSelectedEmployee(null);
         setReplyEmployee(null);
-        setViewReplyEmployee(null); // Open the reply
+        setViewReplyEmployee(null);
 
     };
 
@@ -122,9 +143,7 @@ const ShowFeedBackData = () => {
 
     return (
         <div className="max-w-8xl mx-auto mt-10 p-5 border rounded-lg shadow-lg bg-white overflow-x-auto">
-            {/* <button onClick={() => window.location.href = '/'} className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700">
-                Back
-            </button> */}
+
             <h2 className="text-xl font-bold mb-4">App Feedback</h2>
             <input
                 type="text"
@@ -133,10 +152,16 @@ const ShowFeedBackData = () => {
                 onChange={handleSearch}
                 className="mb-4 p-2 border rounded w-full"
             />
-            {loading && <p className="text-gray-600">Loading...</p>}
+            {loading && (
+                <div className="flex justify-center items-center">
+                    <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+            )}
             {error && <p className="text-red-600">{error}</p>}
             {!loading && !error && (
                 <table className="w-full border-collapse border border-gray-300">
+
+
                     <thead>
                         <tr className="bg-gray-200">
                             <th className="border border-gray-300 p-2 cursor-pointer" onClick={() => handleSort("app_version")}>App Version</th>
@@ -149,7 +174,10 @@ const ShowFeedBackData = () => {
                             <th className="border border-gray-300 p-2 cursor-pointer" onClick={() => handleSort("fraq")}>Freq Ask</th>
 
                             <th className="border border-gray-300 p-2 cursor-pointer">Reply</th>
-                            <th className="border border-gray-300 p-2 cursor-pointer">View Reply</th>
+                            <th className="border border-gray-300 p-2 cursor-pointer">All Replies</th>
+                            <th className="border border-gray-300 p-2 cursor-pointer">Last Reply</th>
+                            <th className="border border-gray-300 p-2 cursor-pointer">Reply Date</th>
+
                         </tr>
                     </thead>
                     <tbody>
@@ -162,12 +190,12 @@ const ShowFeedBackData = () => {
                                     <td className="border border-gray-300 p-2">{emp.description}</td>
                                     <td className="border border-gray-300 p-2">{emp.email}</td>
                                     <td className="border border-gray-300 p-2">{emp.rate_star}</td>
-                                    <td className="border border-gray-300 p-2">{(emp.report ? emp.report:"null")}</td>
-                                    <td className="border border-gray-300 p-2">{(emp.fraq ? emp.fraq:"null")}</td>
+                                    <td className="border border-gray-300 p-2">{(emp.report ? emp.report : "null")}</td>
+                                    <td className="border border-gray-300 p-2">{(emp.fraq ? emp.fraq : "null")}</td>
                                     <td className="border border-gray-300 p-2">
                                         <button
                                             onClick={(e) => {
-                                                e.stopPropagation(); // Prevents triggering row click
+                                                e.stopPropagation();
                                                 handleReply(emp);
                                             }}
                                             className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700"
@@ -178,13 +206,26 @@ const ShowFeedBackData = () => {
                                     </td>
                                     <td className="border border-gray-300 p-2"><button
                                         onClick={(e) => {
-                                            e.stopPropagation(); // Prevents triggering row click
+                                            e.stopPropagation();
                                             handleViewReply(emp);
                                         }}
                                         className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700"
                                     >
                                         <GrView />
                                     </button></td>
+                                    <td className="border border-gray-300 p-2">
+                                        {emp.replies && emp.replies.length > 0
+                                            ? emp.replies[emp.replies.length - 1]?.message
+                                            : "No replies"}
+                                    </td>
+                                    <td className="border border-gray-300 p-2">
+                                        {emp.replies && emp.replies.length > 0
+                                            ? new Date(emp.replies[emp.replies.length - 1]?.timestamp).toLocaleString()
+                                            : "No replies"}
+                                    </td>
+                                    {/* <td className="border border-gray-300 p-2">{emp.replyTimestamp}</td> */}
+
+
                                 </tr>
                             ))
                         ) : (
@@ -243,12 +284,12 @@ const ShowFeedBackData = () => {
                                 className="border border-gray-300 p-2 w-full my-5"
                                 rows={10}
                                 value={replyMessage}
-                                onChange={(e) => setReplyMessage(e.target.value)}  // Update state on input
+                                onChange={(e) => setReplyMessage(e.target.value)}
                             ></textarea>
                         </div>
                         <div className="flex justify-center mt-4">
                             <button
-                                onClick={submitReplies}  // No need to pass parameters now
+                                onClick={submitReplies}
                                 className="px-4 py-2 mr-4 bg-blue-500 text-white rounded hover:bg-blue-700"
                             >
                                 Submit Reply
@@ -269,10 +310,12 @@ const ShowFeedBackData = () => {
                     <div className="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full">
                         <h3 className="text-2xl font-semibold mb-4 text-center">View Replies</h3>
                         <div className="grid">
-                            {viewreplyEmployee.replies.length > 0 ? (
+                            {viewreplyEmployee.replies?.length > 0 ? (
                                 viewreplyEmployee.replies.map((reply, index) => (
                                     <div key={index} className="p-2 border-b border-gray-300">
-                                        <p className="text-sm text-gray-600">{new Date(reply.timestamp).toLocaleString()}</p>
+                                        <p className="text-sm text-gray-600">
+                                            {new Date(reply.timestamp).toLocaleString()}
+                                        </p>
                                         <p>{reply.message}</p>
                                     </div>
                                 ))
@@ -282,7 +325,7 @@ const ShowFeedBackData = () => {
                         </div>
                         <div className="flex justify-center mt-4">
                             <button
-                                onClick={handleClosePopup}
+                                onClick={() => setViewReplyEmployee(null)}
                                 className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-700"
                             >
                                 Close

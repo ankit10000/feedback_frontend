@@ -3,7 +3,7 @@ import axios from "axios";
 import { GrView } from "react-icons/gr";
 
 
-const ShowFeedBackData = () => {
+const EmployeeDashboard = () => {
   const [feedbacks, setFeedbacks] = useState([]);
   const [filteredFeedbacks, setFilteredFeedbacks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -11,9 +11,8 @@ const ShowFeedBackData = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [assignedApps, setAssignedApps] = useState([]);
 
-  // Retrieve logged-in user's email and token from localStorage
   const loggedInUserEmail = localStorage.getItem("email");
-  const authToken = localStorage.getItem("authToken");  // Ensure consistent token key
+  const authToken = localStorage.getItem("authToken"); 
 
   useEffect(() => {
     if (!loggedInUserEmail || !authToken) {
@@ -95,12 +94,13 @@ const ShowFeedBackData = () => {
         email: replyEmployee.email,
         subject: "Feedback Reply",
         message: replyMessage,
+        feedbackId: replyEmployee._id
       });
 
       if (response.data.message) {
         alert("Reply sent successfully!");
-        setReplyEmployee(null);  // Close modal
-        setReplyMessage("");  // Clear message
+        setReplyEmployee(null);  
+        setReplyMessage("");  
       } else {
         alert("Failed to send reply.");
       }
@@ -112,19 +112,19 @@ const ShowFeedBackData = () => {
   const handleClosePopup = () => {
     setSelectedEmployee(null);
     setReplyEmployee(null);
-    setViewReplyEmployee(null); // Open the reply
+    setViewReplyEmployee(null);
 
   };
   const [replyMessage, setReplyMessage] = useState("");
 
   const handleReply = (employee) => {
     setReplyEmployee(employee);
-    setSelectedEmployee(null);  // Close the employee details popup
+    setSelectedEmployee(null);  
     setReplyMessage("");
   };
   const handleViewReply = async (employee) => {
     try {
-      const response = await axios.get(`https://backend-2l3h.onrender.com/api/reply/replies-by-email?email=${employee.email}`);
+      const response = await axios.get(`https://backend-2l3h.onrender.com/api/reply/replies-by-feedback?feedbackId=${employee._id}`);
       if (response.data.success) {
         setViewReplyEmployee({ ...employee, replies: response.data.data });
       } else {
@@ -175,7 +175,7 @@ const ShowFeedBackData = () => {
                   <td className="border border-gray-300 p-2">
                     <button
                       onClick={(e) => {
-                        e.stopPropagation(); // Prevents triggering row click
+                        e.stopPropagation();
                         handleReply(fb);
                       }}
                       className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700"
@@ -186,7 +186,7 @@ const ShowFeedBackData = () => {
                   </td>
                   <td className="border border-gray-300 p-2"><button
                     onClick={(e) => {
-                      e.stopPropagation(); // Prevents triggering row click
+                      e.stopPropagation();
                       handleViewReply(fb);
                     }}
                     className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700"
@@ -249,12 +249,12 @@ const ShowFeedBackData = () => {
                 className="border border-gray-300 p-2 w-full my-5"
                 rows={10}
                 value={replyMessage}
-                onChange={(e) => setReplyMessage(e.target.value)}  // Update state on input
+                onChange={(e) => setReplyMessage(e.target.value)} 
               ></textarea>
             </div>
             <div className="flex justify-center mt-4">
               <button
-                onClick={submitReplies}  // No need to pass parameters now
+                onClick={submitReplies}  
                 className="px-4 py-2 mr-4 bg-blue-500 text-white rounded hover:bg-blue-700"
               >
                 Submit Reply
@@ -300,4 +300,4 @@ const ShowFeedBackData = () => {
   );
 };
 
-export default ShowFeedBackData;
+export default EmployeeDashboard;

@@ -36,8 +36,8 @@ function Login() {
         console.log('Email:', data.user.email);
         console.log('Token:', data.token);
         if (data.user.role === 'admin') {
-            // navigate('/admin_dashboard');
-            navigate('/admin_dashboard');
+            // navigate('/dashborad');
+            navigate('/dashborad');
 
         } else if (data.user.role === 'employee') {
             // navigate('/employee_dashboard');    

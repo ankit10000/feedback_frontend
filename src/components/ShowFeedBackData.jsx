@@ -18,10 +18,10 @@ const ShowFeedBackData = () => {
     useEffect(() => {
         const fetchEmployees = async () => {
             try {
-                const response = await axios.get("https://backend.ankitjangid9197.workers.dev/api/notepad/get_feedback");
+                const response = await axios.get("https://backend-2l3h.onrender.com/api/notepad/get_feedback");
                 const feedbacks = response.data?.data || [];
                 const feedbackIds = feedbacks.map(fb => fb._id);
-                const response1 = feedbackIds.map(id => axios.get(`https://backend.ankitjangid9197.workers.dev/api/reply/replies-by-feedback?feedbackId=${id}`)
+                const response1 = feedbackIds.map(id => axios.get(`https://backend-2l3h.onrender.com/api/reply/replies-by-feedback?feedbackId=${id}`)
                     .then(response => ({ feedbackId: id, replies: response.data?.data || [] }))
                     .catch(error => ({ feedbackId: id, error: error.message })) // Handle errors per request
                 );
@@ -89,7 +89,7 @@ const ShowFeedBackData = () => {
         }
 
         try {
-            const response = await axios.post("https://backend.ankitjangid9197.workers.dev/api/reply/send-reply", {
+            const response = await axios.post("https://backend-2l3h.onrender.com/api/reply/send-reply", {
                 email: replyEmployee.email,
                 subject: "Feedback Reply",
                 message: replyMessage,
@@ -114,7 +114,7 @@ const ShowFeedBackData = () => {
         try {
             setLoading(true);
             const response = await axios.get(
-                `https://backend.ankitjangid9197.workers.dev/api/reply/replies-by-feedback?feedbackId=${employee._id}`
+                `https://backend-2l3h.onrender.com/api/reply/replies-by-feedback?feedbackId=${employee._id}`
             );
 
             if (response.data.success && Array.isArray(response.data.data)) {

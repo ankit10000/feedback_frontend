@@ -18,39 +18,43 @@ const ShowFeedBackData = () => {
     useEffect(() => {
         const fetchEmployees = async () => {
             try {
-                const { data } = await axios.get("https://backend-2l3h.onrender.com/api/notepad/get_feedback");
-                const feedbacks = data?.data || [];
-                
+                const response = await axios.get("https://backend-2l3h.onrender.com/api/notepad/get_feedback");
+                console.log("Feedback API Response:", response.data);
+                const feedbacks = response.data?.data || [];
+    
+                if (feedbacks.length === 0) {
+                    setError("No feedback data available.");
+                }
+    
+                const feedbackIds = feedbacks.map(fb => fb._id);
                 const replies = await Promise.all(
-                    feedbacks.map(async (fb) => {
-                        try {
-                            const { data } = await axios.get(
-                                `https://backend-2l3h.onrender.com/api/reply/replies-by-feedback?feedbackId=${fb._id}`
-                            );
-                            return { feedbackId: fb._id, replies: data?.data || [] };
-                        } catch {
-                            return { feedbackId: fb._id, replies: [] };
-                        }
-                    })
+                    feedbackIds.map(id =>
+                        axios
+                            .get(`https://backend-2l3h.onrender.com/api/reply/replies-by-feedback?feedbackId=${id}`)
+                            .then(response => ({ feedbackId: id, replies: response.data?.data || [] }))
+                            .catch(error => ({ feedbackId: id, error: error.message }))
+                    )
                 );
-
-                const mergedData = feedbacks.map(fb => ({
-                    ...fb,
-                    replies: replies.find(r => r.feedbackId === fb._id)?.replies || []
-                }));
-
-                setEmployees(mergedData);
-                setFilteredEmployees(mergedData);
-            } catch {
-                setError("Failed to fetch feedback");
+    
+                feedbacks.forEach(fb => {
+                    const reply = replies.find(r => r.feedbackId === fb._id);
+                    fb.replies = reply?.replies || [];
+                    fb.error = reply?.error;
+                });
+    
+                setEmployees(feedbacks);
+                setFilteredEmployees(feedbacks);
+            } catch (err) {
+                console.error("Error fetching feedback:", err);
+                setError("Failed to fetch feedback.");
             } finally {
                 setLoading(false);
             }
         };
-
+    
         fetchEmployees();
     }, []);
-
+    
     const handleSort = (field) => {
         const order = sortField === field && sortOrder === "asc" ? "desc" : "asc";
         setSortField(field);

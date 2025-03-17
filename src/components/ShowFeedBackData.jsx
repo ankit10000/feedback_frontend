@@ -18,129 +18,104 @@ const ShowFeedBackData = () => {
     useEffect(() => {
         const fetchEmployees = async () => {
             try {
-                const response = await axios.get("https://backend-2l3h.onrender.com/api/notepad/get_feedback");
-                const feedbacks = response.data?.data || [];
-                const feedbackIds = feedbacks.map(fb => fb._id);
-                const response1 = feedbackIds.map(id => axios.get(`https://backend-2l3h.onrender.com/api/reply/replies-by-feedback?feedbackId=${id}`)
-                    .then(response => ({ feedbackId: id, replies: response.data?.data || [] }))
-                    .catch(error => ({ feedbackId: id, error: error.message })) // Handle errors per request
+                const { data } = await axios.get("https://backend-2l3h.onrender.com/api/notepad/get_feedback");
+                const feedbacks = data?.data || [];
+                
+                const replies = await Promise.all(
+                    feedbacks.map(async (fb) => {
+                        try {
+                            const { data } = await axios.get(
+                                `https://backend-2l3h.onrender.com/api/reply/replies-by-feedback?feedbackId=${fb._id}`
+                            );
+                            return { feedbackId: fb._id, replies: data?.data || [] };
+                        } catch {
+                            return { feedbackId: fb._id, replies: [] };
+                        }
+                    })
                 );
-                const replies = await Promise.all(response1);
-                feedbacks.forEach(fb => {
-                    const reply = replies.find(r => r.feedbackId === fb._id);
-                    fb.replies = reply?.replies || [];
-                    fb.error = reply?.error;
-                });
-                setEmployees(feedbacks);
-                setFilteredEmployees(feedbacks);
-                setLoading(false);
-            } catch (err) {
+
+                const mergedData = feedbacks.map(fb => ({
+                    ...fb,
+                    replies: replies.find(r => r.feedbackId === fb._id)?.replies || []
+                }));
+
+                setEmployees(mergedData);
+                setFilteredEmployees(mergedData);
+            } catch {
                 setError("Failed to fetch feedback");
             } finally {
                 setLoading(false);
             }
         };
 
-
-        return () => fetchEmployees();
+        fetchEmployees();
     }, []);
-
 
     const handleSort = (field) => {
         const order = sortField === field && sortOrder === "asc" ? "desc" : "asc";
         setSortField(field);
         setSortOrder(order);
 
-        const sortedData = [...filteredEmployees].sort((a, b) => {
-            if (a[field] < b[field]) return order === "asc" ? -1 : 1;
-            if (a[field] > b[field]) return order === "asc" ? 1 : -1;
-            return 0;
-        });
-        setFilteredEmployees(sortedData);
+        setFilteredEmployees((prev) =>
+            [...prev].sort((a, b) => (a[field] < b[field] ? (order === "asc" ? -1 : 1) : (a[field] > b[field] ? (order === "asc" ? 1 : -1) : 0)))
+        );
     };
 
     const handleSearch = (e) => {
         const query = e.target.value.toLowerCase();
         setSearchQuery(query);
-        const filteredData = employees.filter((emp) =>
-            Object.values(emp).some(value => value.toString().toLowerCase().includes(query))
-        );
-        setFilteredEmployees(filteredData);
+        setFilteredEmployees(employees.filter(emp =>
+            Object.values(emp).some(value => value?.toString().toLowerCase().includes(query))
+        ));
     };
-
-
 
     const handleRowClick = (employee) => {
         setSelectedEmployee(employee);
-    };
-
-
+      };
+    const handleClosePopup = () => {
+        setSelectedEmployee(null);
+        setReplyEmployee(null);
+        setViewReplyEmployee(null);
+    
+      };
     const handleReply = (employee) => {
         setReplyEmployee(employee);
-        setSelectedEmployee(null);
+        setSelectedEmployee(null);  
         setReplyMessage("");
-    };
-
+      };
 
     const submitReplies = async () => {
-        if (!replyMessage.trim()) {
-            alert("Reply message cannot be empty.");
-            return;
-        }
+        if (!replyMessage.trim()) return alert("Reply message cannot be empty.");
 
         try {
-            const response = await axios.post("https://backend-2l3h.onrender.com/api/reply/send-reply", {
+            const { data } = await axios.post("https://backend-2l3h.onrender.com/api/reply/send-reply", {
                 email: replyEmployee.email,
                 subject: "Feedback Reply",
                 message: replyMessage,
                 feedbackId: replyEmployee._id,
             });
 
-            if (response.data.message) {
-                alert("Reply sent successfully!");
-                setReplyEmployee(null);
-                setReplyMessage("");
-            } else {
-                alert("Failed to send reply.");
-            }
-        } catch (err) {
-            console.error(err);
+            data.message ? alert("Reply sent successfully!") : alert("Failed to send reply.");
+            setReplyEmployee(null);
+            setReplyMessage("");
+        } catch {
             alert("Error sending reply.");
         }
     };
 
-
     const handleViewReply = async (employee) => {
+        setLoading(true);
         try {
-            setLoading(true);
-            const response = await axios.get(
+            const { data } = await axios.get(
                 `https://backend-2l3h.onrender.com/api/reply/replies-by-feedback?feedbackId=${employee._id}`
             );
-
-            if (response.data.success && Array.isArray(response.data.data)) {
-                setViewReplyEmployee({ ...employee, replies: response.data.data });
-            } else {
-                setViewReplyEmployee({ ...employee, replies: [] });
-                alert("No replies found for this user.");
-            }
-        } catch (err) {
-            console.error(err);
+            setViewReplyEmployee({ ...employee, replies: data.success ? data.data : [] });
+        } catch {
             alert("Error fetching replies.");
         } finally {
             setLoading(false);
         }
     };
-
-
-    const handleClosePopup = () => {
-        setSelectedEmployee(null);
-        setReplyEmployee(null);
-        setViewReplyEmployee(null);
-
-    };
-
-
-
     return (
         <div className="max-w-8xl mx-auto mt-10 p-5 border rounded-lg shadow-lg bg-white overflow-x-auto">
 

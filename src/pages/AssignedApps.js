@@ -9,10 +9,7 @@ function AssignedApps() {
   const [assigning, setAssigning] = useState(false);
   const token = localStorage.getItem("authToken");
 
-  // Fetch all employees with assigned apps
-  useEffect(() => {
-    fetchEmployees();
-  }, []);
+
 
   const fetchEmployees = async () => {
     try {
